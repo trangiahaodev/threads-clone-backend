@@ -1,0 +1,9 @@
+1) express.json() and express.urlencoded() are used for POST and PUT requests, because in both these requests you are sending data to the server and asking the server to accept or store that data, which is enclosed in the req.body of that request.
+
+2) Express provides you with middleware to deal with the (incoming) data (object) in the body of the request:
+
+a. express.json() is a method inbuilt in express to recognize the incoming Request Object as a JSON Object. This method is called as a middleware in your application using the code: app.use(express.json());
+
+b. express.urlencoded() is a method inbuilt in express to recognize the incoming Request Object as strings or arrays. This method is called as a middleware in your application using the code: app.use(express.urlencoded());
+
+3) The difference is express.json() is a body parser for post request except html post form and express.urlencoded({extended: false}) is a body parser for html post form.
