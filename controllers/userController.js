@@ -154,4 +154,27 @@ const updateUser = async (req, res) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser, followAndUnfollowUser, updateUser };
+const getUserProfile = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ username })
+      .select("-password")
+      .select("-updatedAt");
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+    console.log("Error in getUserProfile", err.message);
+  }
+};
+
+export {
+  signupUser,
+  loginUser,
+  logoutUser,
+  followAndUnfollowUser,
+  updateUser,
+  getUserProfile,
+};
