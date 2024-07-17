@@ -1,5 +1,6 @@
-import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
+import { v2 as cloudinary } from "cloudinary";
+import User from "../models/userModel.js";
 import generateTokenAndSetCookies from "../utils/helpers/generateTokenAndSetCookies.js";
 
 // Signup User
@@ -126,7 +127,8 @@ const followAndUnfollowUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { name, email, username, password, profilePicture, bio } = req.body;
+  const { name, email, username, password, bio } = req.body;
+  let { profilePicture } = req.body;
   const userId = req.user._id;
   try {
     let user = await User.findById(userId);
@@ -143,15 +145,28 @@ const updateUser = async (req, res) => {
       user.password = hashedPassword;
     }
 
+    if (profilePicture) {
+      // Check if the user has an old profile picture
+      if (user.profilePicture) {
+        await cloudinary.uploader.destroy(
+          user.profilePicture.split("/").pop().split(".")[0]
+        );
+      }
+      const uploadedResponse = await cloudinary.uploader.upload(profilePicture);
+      // secure_url is the url of the uploaded image (read more at https://cloudinary.com/documentation/upload_images)
+      profilePicture = uploadedResponse.secure_url;
+    }
+
     user.name = name || user.name;
     user.email = email || user.email;
     user.username = username || user.username;
     user.profilePicture = profilePicture || user.profilePicture;
     user.bio = bio || user.bio;
+    user.password = null; // Password should not be sent back to the client
 
     user = await user.save();
 
-    res.status(200).json({ message: "Profile updated successfully", user });
+    res.status(200).json({ user });
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in updateUser: ", err.message);
