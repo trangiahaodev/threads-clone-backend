@@ -130,6 +130,7 @@ const updateUser = async (req, res) => {
   const { name, email, username, password, bio } = req.body;
   let { profilePicture } = req.body;
   const userId = req.user._id;
+
   try {
     let user = await User.findById(userId);
     if (!user) return res.status(400).json({ error: "User not found" });
@@ -155,6 +156,7 @@ const updateUser = async (req, res) => {
       const uploadedResponse = await cloudinary.uploader.upload(profilePicture);
       // secure_url is the url of the uploaded image (read more at https://cloudinary.com/documentation/upload_images)
       profilePicture = uploadedResponse.secure_url;
+      console.log(profilePicture);
     }
 
     user.name = name || user.name;
@@ -162,10 +164,10 @@ const updateUser = async (req, res) => {
     user.username = username || user.username;
     user.profilePicture = profilePicture || user.profilePicture;
     user.bio = bio || user.bio;
-    user.password = null; // Password should not be sent back to the client
 
     user = await user.save();
 
+    user.password = null; // Password should not be sent back to the client
     res.status(200).json({ user });
   } catch (err) {
     res.status(500).json({ error: err.message });
