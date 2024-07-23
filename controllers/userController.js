@@ -127,7 +127,7 @@ const followAndUnfollowUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { name, email, username, password, bio } = req.body;
+  const { name, email, username, password, biography } = req.body;
   let { profilePicture } = req.body;
   const userId = req.user._id;
 
@@ -156,19 +156,18 @@ const updateUser = async (req, res) => {
       const uploadedResponse = await cloudinary.uploader.upload(profilePicture);
       // secure_url is the url of the uploaded image (read more at https://cloudinary.com/documentation/upload_images)
       profilePicture = uploadedResponse.secure_url;
-      console.log(profilePicture);
     }
 
     user.name = name || user.name;
     user.email = email || user.email;
     user.username = username || user.username;
     user.profilePicture = profilePicture || user.profilePicture;
-    user.bio = bio || user.bio;
+    user.biography = biography || user.biography;
 
     user = await user.save();
 
     user.password = null; // Password should not be sent back to the client
-    res.status(200).json({ user });
+    res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in updateUser: ", err.message);
