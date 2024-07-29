@@ -56,6 +56,60 @@ const getPost = async (req, res) => {
   }
 };
 
+// const getPostsWithUserProfile = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const user = await User.findById(userId);
+//     if (!user) return res.status(404).json({ error: "User not found" });
+
+//     const following = user.following.map((followId) =>
+//       mongoose.Types.ObjectId.createFromHexString(followId)
+//     );
+
+//     const feedPosts = await Post.aggregate([
+//       {
+//         $match: {
+//           postedBy: { $in: following },
+//         },
+//       },
+//       {
+//         $sort: {
+//           createdAt: -1,
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "postedBy",
+//           foreignField: "_id",
+//           as: "userProfile",
+//         },
+//       },
+//       { $unwind: "$userProfile" },
+//       {
+//         $project: {
+//           _id: 1,
+//           text: 1,
+//           likes: 1,
+//           replies: 1,
+//           createdAt: 1,
+//           updatedAt: 1,
+//           img: 1,
+//           "userProfile.name": 1,
+//           "userProfile.username": 1,
+//           "userProfile.email": 1,
+//           "userProfile.profilePicture": 1,
+//         },
+//       },
+//     ]);
+
+//     res.status(200).json(feedPosts);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//     console.log("Error in getPostsWithUserProfile: ", err.message);
+//   }
+// };
+
 const getPostsWithUserProfile = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -66,47 +120,36 @@ const getPostsWithUserProfile = async (req, res) => {
       mongoose.Types.ObjectId.createFromHexString(followId)
     );
 
-    const feedPosts = await Post.aggregate([
-      {
-        $match: {
-          postedBy: { $in: following },
-        },
-      },
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "postedBy",
-          foreignField: "_id",
-          as: "userProfile",
-        },
-      },
-      { $unwind: "$userProfile" },
-      {
-        $project: {
-          _id: 1,
-          text: 1,
-          likes: 1,
-          replies: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          img: 1,
-          "userProfile.name": 1,
-          "userProfile.username": 1,
-          "userProfile.email": 1,
-          "userProfile.profilePicture": 1,
-        },
-      },
-    ]);
+    const feedPosts = await Post.find({ postedBy: { $in: following } })
+      .populate("postedBy", "name username email profilePicture")
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json(feedPosts);
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in getPostsWithUserProfile: ", err.message);
+  }
+};
+
+const getUserPosts = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const posts = await Post.find({ postedBy: user._id })
+      .populate("postedBy", "name username email profilePicture")
+      .sort({
+        createdAt: -1,
+      });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log("Error in getUserPosts: ", err.message);
   }
 };
 
@@ -183,4 +226,5 @@ export {
   likeAndUnlikePost,
   replyToPost,
   getPostsWithUserProfile,
+  getUserPosts,
 };
