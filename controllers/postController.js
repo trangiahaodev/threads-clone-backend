@@ -56,6 +56,7 @@ const getPost = async (req, res) => {
   }
 };
 
+// Version 1
 // const getPostsWithUserProfile = async (req, res) => {
 //   try {
 //     const userId = req.user._id;
@@ -161,6 +162,12 @@ const deletePost = async (req, res) => {
 
     if (post.postedBy.toString() !== req.user._id.toString())
       return res.status(401).json({ error: "Unauthorized to delete post" });
+
+    // Delete post image from cloudinary
+    if (post.img) {
+      const imageId = post.img.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(imageId);
+    }
 
     await Post.findByIdAndDelete(postId);
 
