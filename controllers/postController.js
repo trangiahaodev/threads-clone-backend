@@ -34,9 +34,9 @@ const createPost = async (req, res) => {
     const newPost = new Post({ postedBy, text, img });
     await newPost.save();
 
-    res
-      .status(201)
-      .json({ message: "Created post successfully", data: newPost });
+    const populatedPost = await Post.findById(newPost._id).populate("postedBy");
+
+    res.status(201).json(populatedPost);
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in createPost: ", err.message);
@@ -219,7 +219,7 @@ const replyToPost = async (req, res) => {
     post.replies.push(reply);
     await post.save();
 
-    res.status(200).json({ message: "Reply posted successfully", data: post });
+    res.status(200).json(reply);
   } catch (err) {
     res.status(500).json({ error: err.message });
     console.log("Error in replyToPost: ", err.message);
