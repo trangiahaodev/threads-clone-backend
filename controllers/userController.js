@@ -1,8 +1,12 @@
+import mongoose from "mongoose";
+
+import User from "../models/userModel.js";
+import Post from "../models/postModel.js";
+
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
-import User from "../models/userModel.js";
+
 import generateTokenAndSetCookies from "../utils/helpers/generateTokenAndSetCookies.js";
-import mongoose from "mongoose";
 
 // Signup User
 const signupUser = async (req, res) => {
@@ -166,6 +170,18 @@ const updateUser = async (req, res) => {
     user.biography = biography || user.biography;
 
     user = await user.save();
+
+    // Find all posts that this user replied and Update username, userProfilePicture fields
+    await Post.updateMany(
+      { "replies.userId": userId },
+      {
+        $set: {
+          "replies.$[reply].username": user.username,
+          "replies.$[reply].userProfilePicture": user.profilePicture,
+        },
+      },
+      { arrayFilters: [{ "reply.userId": userId }] }
+    );
 
     user.password = null; // Password should not be sent back to the client
     res.status(200).json(user);
