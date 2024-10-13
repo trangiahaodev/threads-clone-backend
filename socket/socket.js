@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import http from "http";
-import express from "express"; // eslint-disable-line
+import express from "express";
 import Message from "../models/messageModel.js";
 import Conversation from "../models/conversationModel.js";
 
