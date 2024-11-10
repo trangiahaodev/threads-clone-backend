@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://threads-clone-db2i.onrender.com",
+    origin: "localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
